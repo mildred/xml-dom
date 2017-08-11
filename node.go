@@ -166,6 +166,24 @@ func (n *Node) NodeName() string {
 	return n.nodeName
 }
 
+func (n *Node) LocalNodeName() string {
+	slice := strings.SplitN(n.nodeName, ":", 2)
+	if len(slice) >= 2 {
+		return slice[1]
+	} else {
+		return ""
+	}
+}
+
+func (n *Node) NodeNamePrefix() string {
+	slice := strings.SplitN(n.nodeName, ":", 2)
+	if len(slice) >= 1 {
+		return slice[0]
+	} else {
+		return ""
+	}
+}
+
 func (n *Node) NodeValue() string {
 	return n.nodeValue
 }
