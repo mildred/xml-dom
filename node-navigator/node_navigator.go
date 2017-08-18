@@ -3,9 +3,13 @@ package node_navigator
 import (
 	"github.com/antchfx/xpath"
 	"github.com/mildred/xml-dom"
+	"io/ioutil"
+	"log"
 )
 
 var _ xpath.NodeNavigator = &NodeNavigator{}
+
+var l *log.Logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
 type NodeNavigator struct {
 	Node *xmldom.Node
@@ -18,7 +22,8 @@ func NewNodeNavigator(node *xmldom.Node) *NodeNavigator {
 
 // NodeType returns the XPathNodeType of the current node.
 func (nn *NodeNavigator) NodeType() xpath.NodeType {
-	switch nn.Node.NodeType() {
+	l.Printf("NodeType(%v) = %#v", nn.node(), nn.node().NodeType())
+	switch nn.node().NodeType() {
 	case xmldom.DocumentNode:
 		return xpath.RootNode
 	case xmldom.ElementNode:
@@ -59,16 +64,19 @@ func (nn *NodeNavigator) node() *xmldom.Node {
 
 // LocalName gets the Name of the current node.
 func (nn *NodeNavigator) LocalName() string {
+	l.Printf("LocalName(%v) = %#v", nn.node(), nn.node().LocalNodeName())
 	return nn.node().LocalNodeName()
 }
 
 // Prefix returns namespace prefix associated with the current node.
 func (nn *NodeNavigator) Prefix() string {
+	l.Printf("Prefix(%v)", nn.node())
 	return nn.node().NodeNamePrefix()
 }
 
 // Value gets the value of current node.
 func (nn *NodeNavigator) Value() string {
+	l.Printf("Value(%v)", nn.node())
 	return nn.node().NodeValue()
 }
 
@@ -80,12 +88,15 @@ func (nn *NodeNavigator) Copy() xpath.NodeNavigator {
 
 // MoveToRoot moves the NodeNavigator to the root node of the current node.
 func (nn *NodeNavigator) MoveToRoot() {
+	l.Printf("MoveToRoot(%v)", nn.node())
+	defer l.Printf("MoveToRoot(%v) *END*", nn.node())
 	for nn.MoveToParent() {
 	}
 }
 
 // MoveToParent moves the NodeNavigator to the parent node of the current node.
 func (nn *NodeNavigator) MoveToParent() bool {
+	l.Printf("MoveToParent(%v)", nn.node())
 	if nn.Attr != 0 {
 		nn.Attr = 0
 		return true
@@ -100,6 +111,7 @@ func (nn *NodeNavigator) MoveToParent() bool {
 
 // MoveToNextAttribute moves the NodeNavigator to the next attribute on current node.
 func (nn *NodeNavigator) MoveToNextAttribute() bool {
+	l.Printf("MoveToNextAttribute(%v)", nn.node())
 	if nn.Attr >= nn.Node.Attributes().Length() {
 		return false
 	} else {
@@ -110,6 +122,7 @@ func (nn *NodeNavigator) MoveToNextAttribute() bool {
 
 // MoveToChild moves the NodeNavigator to the first child node of the current node.
 func (nn *NodeNavigator) MoveToChild() bool {
+	l.Printf("MoveToChild(%v)", nn.node())
 	if nn.Attr != 0 {
 		return false
 	}
@@ -123,6 +136,8 @@ func (nn *NodeNavigator) MoveToChild() bool {
 
 // MoveToFirst moves the NodeNavigator to the first sibling node of the current node.
 func (nn *NodeNavigator) MoveToFirst() bool {
+	l.Printf("MoveToFirst(%v)", nn.node())
+	defer l.Printf("MoveToFirst(%v) *END*", nn.node())
 	if nn.Attr != 0 {
 		return false
 	}
@@ -137,18 +152,22 @@ func (nn *NodeNavigator) MoveToFirst() bool {
 // MoveToNext moves the NodeNavigator to the next sibling node of the current node.
 func (nn *NodeNavigator) MoveToNext() bool {
 	if nn.Attr != 0 {
+		l.Printf("MoveToNext(%v) ERROR", nn.node())
 		return false
 	}
 	if sibling := nn.Node.NextSibling(); sibling != nil {
+		l.Printf("MoveToNext(%v) = %v", nn.node(), sibling)
 		nn.Node = sibling
 		return true
 	} else {
+		l.Printf("MoveToNext(%v) = false", nn.node())
 		return false
 	}
 }
 
 // MoveToPrevious moves the NodeNavigator to the previous sibling node of the current node.
 func (nn *NodeNavigator) MoveToPrevious() bool {
+	l.Printf("MoveToPrevious(%v)", nn.node())
 	if nn.Attr != 0 {
 		return false
 	}
@@ -162,6 +181,7 @@ func (nn *NodeNavigator) MoveToPrevious() bool {
 
 // MoveTo moves the NodeNavigator to the same position as the specified NodeNavigator.
 func (nn *NodeNavigator) MoveTo(nn2 xpath.NodeNavigator) bool {
+	l.Printf("MoveTo(%v, %v)", nn.node(), nn2)
 	if n := nn2.(*NodeNavigator); n != nil {
 		nn.Node = n.Node
 		nn.Attr = n.Attr
@@ -169,4 +189,8 @@ func (nn *NodeNavigator) MoveTo(nn2 xpath.NodeNavigator) bool {
 	} else {
 		return false
 	}
+}
+
+func (nn *NodeNavigator) String() string {
+	return nn.node().String()
 }

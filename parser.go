@@ -5,8 +5,11 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io"
+	"io/ioutil"
 	"log"
 )
+
+var l *log.Logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
 func xmlName(n xml.Name) string {
 	if n.Space == "" {
@@ -36,7 +39,7 @@ func (parent *Node) NewChildFromToken(tok xml.Token, data string) *Node {
 			a.SetNodeValue(attr.Value)
 			a.Raw = []string{sea.Before, sea.Name, sea.Between, sea.Value, sea.After}
 			a.ValueDirty = false
-			log.Printf("attr: %#v", a)
+			l.Printf("attr: %#v", a)
 			n.SetAttributeNode(a)
 		}
 		n.Raw = []string{se.Before, se.TagName, se.After}
@@ -116,14 +119,14 @@ func ParseXML(rr io.Reader) (*Node, error) {
 	doc := NewDocument()
 	node := doc
 	for {
-		//log.Println()
-		//log.Printf("Before token o=%d l=%d c=%d", r.offset, r.line+1, r.col+1)
-		//log.Printf("xml offset=%d", decoder.InputOffset())
+		//l.Println()
+		//l.Printf("Before token o=%d l=%d c=%d", r.offset, r.line+1, r.col+1)
+		//l.Printf("xml offset=%d", decoder.InputOffset())
 		r.acc = nil
 		tok, err := decoder.RawToken()
 		switch {
 		case err == io.EOF:
-			//log.Printf("End of File")
+			//l.Printf("End of File")
 			goto quit
 		case err != nil:
 			return nil, err
@@ -147,20 +150,20 @@ func ParseXML(rr io.Reader) (*Node, error) {
 			r.last = nil
 		}
 
-		//log.Printf("After token o=%d l=%d c=%d", r.offset, r.line+1, r.col+1)
-		//log.Printf("acc=%#v", string(r.acc))
-		//log.Printf("xml offset=%d", decoder.InputOffset())
-		//log.Printf("tok=%#v", tok)
+		//l.Printf("After token o=%d l=%d c=%d", r.offset, r.line+1, r.col+1)
+		//l.Printf("acc=%#v", string(r.acc))
+		//l.Printf("xml offset=%d", decoder.InputOffset())
+		//l.Printf("tok=%#v", tok)
 
 		switch tok := tok.(type) {
 		default:
-			log.Printf("node: %#v", string(r.acc))
+			l.Printf("node: %#v", string(r.acc))
 			node.NewChildFromToken(tok, string(r.acc))
 		case xml.StartElement:
-			log.Printf("start: %#v", string(r.acc))
+			l.Printf("start: %#v", string(r.acc))
 			node = node.NewChildFromToken(tok, string(r.acc))
 		case xml.EndElement:
-			log.Printf("end: %#v", string(r.acc))
+			l.Printf("end: %#v", string(r.acc))
 			for node.parentNode != nil && xmlName(tok.Name) != node.nodeName {
 				p := node.parentNode
 				for _, n := range node.childNodes {
@@ -173,12 +176,12 @@ func ParseXML(rr io.Reader) (*Node, error) {
 				node = p
 			}
 			node.Raw = append(node.Raw, string(r.acc))
-			log.Printf("end2: %#v, %#v", string(node.nodeName), node.parentNode)
+			l.Printf("end2: %#v, %#v", string(node.nodeName), node.parentNode)
 			node = node.parentNode
-			log.Printf("end2: %#v", string(node.nodeName))
+			l.Printf("end2: %#v", string(node.nodeName))
 		}
 	}
 quit:
-	log.Printf("doc: %s", doc.XML())
+	l.Printf("doc: %s", doc.XML())
 	return doc, nil
 }

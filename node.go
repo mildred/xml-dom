@@ -25,6 +25,10 @@ type Node struct {
 	Raw []string
 }
 
+func (n *Node) String() string {
+	return n.XML()
+}
+
 func (n *Node) XML() string {
 	switch n.nodeType {
 	case DocumentFragmentNode:
@@ -171,13 +175,13 @@ func (n *Node) LocalNodeName() string {
 	if len(slice) >= 2 {
 		return slice[1]
 	} else {
-		return ""
+		return n.nodeName
 	}
 }
 
 func (n *Node) NodeNamePrefix() string {
 	slice := strings.SplitN(n.nodeName, ":", 2)
-	if len(slice) >= 1 {
+	if len(slice) >= 2 {
 		return slice[0]
 	} else {
 		return ""
@@ -230,7 +234,7 @@ func (n *Node) PreviousSibling() *Node {
 }
 
 func (n *Node) NextSibling() *Node {
-	if n.ParentNode() == nil || n.pos == 0 {
+	if n.ParentNode() == nil {
 		return nil
 	}
 	siblings := n.ParentNode().ChildNodes()
