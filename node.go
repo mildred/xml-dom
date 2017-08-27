@@ -139,6 +139,29 @@ func (n *Node) XML() string {
 	}
 }
 
+func (n *Node) AsText() string {
+	switch n.nodeType {
+	case DocumentFragmentNode:
+		fallthrough
+	case DocumentNode:
+		fallthrough
+	case ElementNode:
+		var res string
+		for _, cn := range n.childNodes {
+			res += cn.AsText()
+		}
+		return res
+	case AttributeNode:
+		fallthrough
+	case CDATASectionNode:
+		fallthrough
+	case TextNode:
+		return n.nodeValue
+	default:
+		return ""
+	}
+}
+
 func (n *Node) CloneNode(deep bool) *Node {
 	var children NodeList
 	if deep {

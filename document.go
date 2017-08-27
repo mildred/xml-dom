@@ -28,6 +28,28 @@ func NewDocument() *Node {
 	return n
 }
 
+func (d *Node) ImportNode(n *Node) Error {
+	if n.ParentNode() != nil {
+		return err(HierarchyRequestError)
+	}
+	importNode(d.OwnerDocument(), n)
+	return nil
+}
+
+func importNode(doc *Node, n *Node) {
+	n.ownerDocument = doc
+	for _, cn := range n.childNodes {
+		importNode(doc, cn)
+	}
+	if n.attributes != nil {
+		i := 0
+		for i < n.attributes.Length() {
+			importNode(doc, n.attributes.Item(i))
+			i++
+		}
+	}
+}
+
 func (d *Node) CreateElement(tagName string) (*Node, Error) {
 	return &Node{
 		nodeType:      ElementNode,
