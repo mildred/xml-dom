@@ -63,6 +63,7 @@ func (nm *namedNodeMap) RemoveNamedItem(name string) Error {
 		if i+1 < len(nm.nodes) {
 			newNodes = append(newNodes, nm.nodes[i+1:len(nm.nodes)]...)
 		}
+		nm.nodes = newNodes
 		for n, j := range nm.index {
 			if j > i {
 				nm.index[n] = j - 1
