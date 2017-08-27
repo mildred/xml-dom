@@ -54,6 +54,11 @@ func (nn *NodeNavigator) NodeType() xpath.NodeType {
 }
 
 // LocalName gets the Name of the current node.
+func (nn *NodeNavigator) Current() *xmldom.Node {
+	return nn.node()
+}
+
+// LocalName gets the Name of the current node.
 func (nn *NodeNavigator) node() *xmldom.Node {
 	if nn.Attr == 0 {
 		return nn.Node

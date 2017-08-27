@@ -101,7 +101,7 @@ func (i *Iterator) Current() *xmldom.Node {
 	if res == nil {
 		return nil
 	} else if nn, ok := res.(*node_navigator.NodeNavigator); ok {
-		return nn.Node
+		return nn.Current()
 	} else {
 		panic("Could not convert NodeNavigator")
 	}

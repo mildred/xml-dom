@@ -80,6 +80,7 @@ func parseStartElement(code string) startElement {
 				attr.Value, code = parseUntil(code, xmlWhitespace)
 				attr.After = ""
 			}
+			sp, code = parseWhile(code, xmlWhitespace)
 		}
 		elem.Attributes = append(elem.Attributes, attr)
 	}

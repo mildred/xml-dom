@@ -32,6 +32,9 @@ func (parent *Node) NewChildFromToken(tok xml.Token, data string) *Node {
 		}
 		for i, attr := range tok.Attr {
 			sea := se.Attributes[i]
+			if xmlName(attr.Name) != sea.Name {
+				panic("unexpected name")
+			}
 			a, err := doc.CreateAttribute(xmlName(attr.Name))
 			if err != nil {
 				panic(err)

@@ -170,26 +170,27 @@ func (n *Node) AsText() string {
 }
 
 func (n *Node) CloneNode(deep bool) *Node {
-	var children NodeList
-	if deep {
-		for _, c := range n.childNodes {
-			children = append(children, c.CloneNode(deep))
-		}
-	}
-	var attributes NamedNodeMap
-	if n.attributes != nil {
-		attributes = n.attributes.Clone(deep)
-	}
-	return &Node{
+	res := &Node{
 		nodeType:      n.nodeType,
 		pos:           n.pos,
 		nodeName:      n.nodeName,
 		nodeValue:     n.nodeValue,
 		parentNode:    nil,
-		childNodes:    children,
+		childNodes:    NodeList{},
 		ownerDocument: n.ownerDocument,
-		attributes:    attributes,
+		attributes:    nil,
 	}
+	if deep {
+		for _, c := range n.childNodes {
+			c = c.CloneNode(deep)
+			c.parentNode = res
+			res.childNodes = append(res.childNodes, c)
+		}
+	}
+	if n.attributes != nil {
+		res.attributes = n.attributes.Clone(deep)
+	}
+	return res
 }
 
 func (n *Node) NodeType() NodeType {
@@ -295,7 +296,7 @@ func (n *Node) InsertBefore(newChild, refChild *Node) (*Node, Error) {
 
 	var newChildren NodeList
 	if i > 0 {
-		newChildren = n.childNodes[0:i]
+		newChildren = append(NodeList{}, n.childNodes[0:i]...)
 	}
 	var length int
 
@@ -317,7 +318,7 @@ func (n *Node) InsertBefore(newChild, refChild *Node) (*Node, Error) {
 		newChildren = append(newChildren, newChild)
 	}
 
-	for _, child := range n.childNodes[i:len(n.childNodes)] {
+	for _, child := range n.childNodes[i:] {
 		child.pos += length
 	}
 	newChildren = append(newChildren, n.childNodes[i:len(n.childNodes)]...)
@@ -413,4 +414,25 @@ func (n *Node) IsAncestor(ancestor *Node) bool {
 
 func (n *Node) HasChildNodes() bool {
 	return len(n.childNodes) > 0
+}
+
+func (n *Node) check() *Node {
+	var prev *Node
+	for i, cn := range n.childNodes {
+		if cn.ParentNode() != n {
+			panic(fmt.Sprintf("ParentNode incorrect for child %d of %s", i, n))
+		}
+		if cn.PreviousSibling() != prev {
+			panic(fmt.Sprintf("PreviousSibling incorrect for child %d of %s\nchild: %v\ngot: %d %v\nexpect: %d %v\n", i, n, cn, cn.PreviousSibling().pos, cn.PreviousSibling(), prev.pos, prev))
+		}
+		var next *Node
+		if i+1 < len(n.childNodes) {
+			next = n.childNodes[i+1]
+		}
+		if cn.NextSibling() != next {
+			panic(fmt.Sprintf("NextSibling incorrect for child %d of %s", i, n))
+		}
+		prev = cn
+	}
+	return n
 }

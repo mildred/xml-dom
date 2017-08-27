@@ -3,8 +3,8 @@ package node_navigator
 import (
 	"bytes"
 	"github.com/antchfx/xpath"
+	"github.com/antchfx/xpath/test"
 	"github.com/mildred/xml-dom"
-	"github.com/mildred/xpath/test"
 	"testing"
 )
 
