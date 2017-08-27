@@ -38,6 +38,7 @@ func MustCompile(expr string) *Expr {
 	return convert(xpath.MustCompile(expr))
 }
 
+// Return *Iterator,bool,float64,string
 func (e *Expr) Evaluate(n *xmldom.Node) interface{} {
 	res := e.Expr.Evaluate(node_navigator.NewNodeNavigator(n))
 	switch res.(type) {
@@ -49,6 +50,26 @@ func (e *Expr) Evaluate(n *xmldom.Node) interface{} {
 	}
 }
 
+// Evaluate that return always an iterator (empty in case the result is not a
+// node)
+func (e *Expr) EvaluateNode(n *xmldom.Node) *Iterator {
+	return &Iterator{e.Expr.Evaluate(node_navigator.NewNodeNavigator(n)).(*xpath.NodeIterator)}
+}
+
+func (e *Expr) Exists(n *xmldom.Node) bool {
+	return Exists(e.Evaluate(n))
+}
+
+func Exists(res interface{}) bool {
+	if res == nil {
+		return false
+	} else if i, ok := res.(*Iterator); ok {
+		return i.MoveNext()
+	} else {
+		return true
+	}
+}
+
 // Iterator for nodes, initialized before the first element. Call MoveNext() to
 // get started. When MoveNext() returns false, it means we are past the end and
 // there is no current element.
@@ -56,7 +77,26 @@ type Iterator struct {
 	*xpath.NodeIterator
 }
 
+func (i *Iterator) Node() *xmldom.Node {
+	return i.Current()
+}
+
+func (i *Iterator) Next() bool {
+	return i.MoveNext()
+}
+
+func (i *Iterator) Nodes() []*xmldom.Node {
+	var res []*xmldom.Node
+	for i.MoveNext() {
+		res = append(res, i.Current())
+	}
+	return res
+}
+
 func (i *Iterator) Current() *xmldom.Node {
+	if i.NodeIterator == nil {
+		return nil
+	}
 	res := i.NodeIterator.Current()
 	if res == nil {
 		return nil
@@ -68,5 +108,8 @@ func (i *Iterator) Current() *xmldom.Node {
 }
 
 func (i *Iterator) MoveNext() bool {
+	if i.NodeIterator == nil {
+		return false
+	}
 	return i.NodeIterator.MoveNext()
 }
