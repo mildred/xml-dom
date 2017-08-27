@@ -100,7 +100,7 @@ func (n *Node) XML() string {
 			return strings.Join(n.Raw, "")
 		}
 		var b bytes.Buffer
-		err := xml.EscapeText(&b, []byte(n.nodeValue))
+		err := xml.NewEncoder(&b).EncodeToken(xml.CharData(n.nodeValue))
 		if err != nil {
 			panic(err)
 		}
