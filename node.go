@@ -99,12 +99,19 @@ func (n *Node) XML() string {
 		if len(n.Raw) > 0 && !n.ValueDirty {
 			return strings.Join(n.Raw, "")
 		}
-		var b bytes.Buffer
-		err := xml.NewEncoder(&b).EncodeToken(xml.CharData(n.nodeValue))
-		if err != nil {
-			panic(err)
+		var res string
+		for _, c := range n.nodeValue {
+			if c == '<' {
+				res += "&lt;"
+			} else if c == '>' {
+				res += "&gt;"
+			} else if c == '&' {
+				res += "&amp;"
+			} else {
+				res += string(c)
+			}
 		}
-		return string(b.Bytes())
+		return res
 	case CDATASectionNode:
 		if len(n.Raw) > 0 && !n.ValueDirty {
 			return strings.Join(n.Raw, "")
