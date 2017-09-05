@@ -53,15 +53,27 @@ func (n *Node) XML() string {
 		}
 
 		var last string
-		if len(n.Raw) >= 4 &&
-			(n.Raw[3] == "") == (len(n.childNodes) == 0) &&
-			(len(n.childNodes) == 0 || n.Raw[1] == n.nodeName) {
-			last = n.Raw[3]
-			res += n.Raw[2]
-		} else if len(n.childNodes) == 0 {
+		var self_closing bool = len(n.childNodes) == 0
+		var not_self_closing bool = !self_closing
+
+		if len(n.Raw) >= 4 {
+			if n.Raw[3] == "" {
+				if self_closing {
+					res += n.Raw[2]
+					last = n.Raw[3]
+					self_closing = false
+				}
+			} else if n.Raw[1] == n.nodeName || n.Raw[3] == "" {
+				last = n.Raw[3]
+				res += n.Raw[2]
+				self_closing = false
+				not_self_closing = false
+			}
+		}
+		if self_closing {
 			res += "/>"
 			last = ""
-		} else {
+		} else if not_self_closing {
 			res += ">"
 			last = fmt.Sprintf("</%s>", n.nodeName)
 		}
