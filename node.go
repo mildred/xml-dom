@@ -182,6 +182,7 @@ func (n *Node) AsText() string {
 }
 
 func (n *Node) CloneNode(deep bool) *Node {
+	n.check()
 	res := &Node{
 		nodeType:      n.nodeType,
 		pos:           n.pos,
@@ -202,7 +203,7 @@ func (n *Node) CloneNode(deep bool) *Node {
 	if n.attributes != nil {
 		res.attributes = n.attributes.Clone(deep)
 	}
-	return res
+	return res.check()
 }
 
 func (n *Node) NodeType() NodeType {
@@ -297,6 +298,8 @@ func (n *Node) OwnerDocument() *Node {
 }
 
 func (n *Node) InsertBefore(newChild, refChild *Node) (*Node, Error) {
+	n.check()
+	defer n.check()
 	if refChild == nil {
 		return n.AppendChild(newChild)
 	}
@@ -339,6 +342,8 @@ func (n *Node) InsertBefore(newChild, refChild *Node) (*Node, Error) {
 }
 
 func (n *Node) ReplaceChild(newChild, oldChild *Node) (*Node, Error) {
+	n.check()
+	defer n.check()
 	if newChild.NodeType() == DocumentFragmentNode {
 		return nil, err(HierarchyRequestError)
 	}
@@ -357,6 +362,8 @@ func (n *Node) ReplaceChild(newChild, oldChild *Node) (*Node, Error) {
 }
 
 func (n *Node) RemoveChild(oldChild *Node) (*Node, Error) {
+	n.check()
+	defer n.check()
 	i := oldChild.pos
 	if oldChild.parentNode != n || n.childNodes[i] != oldChild {
 		return nil, err(NotFoundError)
@@ -378,6 +385,8 @@ func (n *Node) RemoveChild(oldChild *Node) (*Node, Error) {
 }
 
 func (n *Node) AppendChild(newChild *Node) (*Node, Error) {
+	n.check()
+	defer n.check()
 	if newChild.NodeType() == DocumentFragmentNode {
 		for _, child := range newChild.ChildNodes() {
 			_, err := n.AppendChild(child)
@@ -397,6 +406,9 @@ func (n *Node) AppendChild(newChild *Node) (*Node, Error) {
 }
 
 func (n *Node) attach(newParent *Node, pos int) Error {
+	newParent.check()
+	n.check()
+	defer n.check()
 	if newParent.OwnerDocument() != n.ownerDocument {
 		return err(WrongDocumentError)
 	} else if newParent.IsAncestor(n) {
@@ -410,6 +422,7 @@ func (n *Node) attach(newParent *Node, pos int) Error {
 	}
 	n.parentNode = newParent
 	n.pos = pos
+	newParent.check()
 	return nil
 }
 

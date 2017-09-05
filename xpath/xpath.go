@@ -1,6 +1,7 @@
 package xpath
 
 import (
+	"fmt"
 	"github.com/antchfx/xpath"
 	"github.com/mildred/xml-dom"
 	"github.com/mildred/xml-dom/node-navigator"
@@ -79,6 +80,10 @@ type Iterator struct {
 
 func (i *Iterator) Node() *xmldom.Node {
 	return i.Current()
+}
+
+func (i *Iterator) String() string {
+	return fmt.Sprintf("%s", i.NodeIterator)
 }
 
 func (i *Iterator) Next() bool {
