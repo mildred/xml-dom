@@ -117,7 +117,7 @@ func (nn *NodeNavigator) MoveToParent() bool {
 // MoveToNextAttribute moves the NodeNavigator to the next attribute on current node.
 func (nn *NodeNavigator) MoveToNextAttribute() bool {
 	l.Printf("MoveToNextAttribute(%v)", nn.node())
-	if nn.Attr >= nn.Node.Attributes().Length() {
+	if nn.Node.Attributes() == nil || nn.Attr >= nn.Node.Attributes().Length() {
 		return false
 	} else {
 		nn.Attr++
